@@ -1,0 +1,133 @@
+name: Developer Git Survey
+description: Share how you use Git in your day-to-day workflow. Takes about 2 minutes.
+title: "[Survey] Developer Git Survey – <your name>"
+labels: ["survey", "git"]
+body:
+
+  - type: markdown
+    attributes:
+      value: |
+        ## 👋 Welcome to the Developer Git Survey
+        Please answer as many questions as you can. Fields marked * are required.
+
+  - type: dropdown
+    id: experience
+    attributes:
+      label: "1. How long have you been using Git? *"
+      options:
+        - Less than 1 year
+        - 1–3 years
+        - 3–5 years
+        - 5+ years
+    validations:
+      required: true
+
+  - type: dropdown
+    id: proficiency
+    attributes:
+      label: "2. How would you rate your Git proficiency? *"
+      options:
+        - "1 – Beginner"
+        - "2 – Novice"
+        - "3 – Intermediate"
+        - "4 – Advanced"
+        - "5 – Expert"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: platform
+    attributes:
+      label: "3. Which Git hosting platform do you use most? *"
+      options:
+        - GitHub
+        - GitLab
+        - Bitbucket
+        - Azure DevOps
+        - Self-hosted
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: branching
+    attributes:
+      label: "4. What branching strategy does your team follow?"
+      options:
+        - Git Flow
+        - Trunk-based development
+        - GitHub Flow
+        - No formal strategy
+        - Other
+
+  - type: dropdown
+    id: cli-vs-gui
+    attributes:
+      label: "5. How often do you use CLI vs. a GUI tool?"
+      options:
+        - Always CLI
+        - Mostly CLI
+        - Mix of both
+        - Mostly GUI
+        - Always GUI
+
+  - type: checkboxes
+    id: gui-tool
+    attributes:
+      label: "6. Which Git GUI tool do you use, if any? (select all that apply)"
+      options:
+        - label: GitKraken
+        - label: Sourcetree
+        - label: VS Code built-in
+        - label: GitHub Desktop
+        - label: None
+        - label: Other
+
+  - type: dropdown
+    id: merge-conflicts
+    attributes:
+      label: "7. How comfortable are you resolving merge conflicts? *"
+      options:
+        - "1 – Very uncomfortable"
+        - "2 – Somewhat uncomfortable"
+        - "3 – Neutral"
+        - "4 – Comfortable"
+        - "5 – Very comfortable"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: git-hooks
+    attributes:
+      label: "8. Do you use Git hooks in your projects?"
+      options:
+        - Yes, regularly
+        - Yes, occasionally
+        - No, but I'd like to
+        - No, never heard of them
+
+  - type: dropdown
+    id: commit-convention
+    attributes:
+      label: "9. Do you follow a commit message convention (e.g. Conventional Commits)?"
+      options:
+        - "Yes"
+        - "No"
+        - What's that?
+
+  - type: dropdown
+    id: lost-work
+    attributes:
+      label: "10. Have you ever lost work due to a Git mistake? *"
+      options:
+        - "Yes"
+        - "No"
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: pain-point
+    attributes:
+      label: "11. What's your biggest pain point with Git?"
+      placeholder: Feel free to share anything...
