@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Developer Git Survey</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --purple: #6741d9;
+      --purple-light: #f0ebff;
+      --green: #238636;
+      --border: #d0d7de;
+      --bg: #f6f8fa;
+      --card: #ffffff;
+      --text: #1f2328;
+      --muted: #656d76;
+      --radius: 8px;
+    }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+    /* NAV */
+    .nav { background: #24292f; padding: 12px 24px; display: flex; align-items: center; gap: 16px; }
+    .nav svg { color: #fff; }
+    .nav-tabs { display: flex; gap: 4px; margin-left: auto; }
+    .nav-tab { background: none; border: none; color: #e6edf3; padding: 6px 14px; border-radius: var(--radius); cursor: pointer; font-size: 14px; font-family: inherit; }
+    .nav-tab.active, .nav-tab:hover { background: #fff2; color: #fff; }
+
+    .page { display: none; max-width: 700px; margin: 0 auto; padding: 2rem 1rem; }
+    .page.active { display: block; }
+
+    /* FORM PAGE */
+    .form-header { background: var(--card); border-radius: var(--radius); border: 1px solid var(--border); border-top: 8px solid var(--purple); padding: 1.5rem; margin-bottom: 14px; }
+    .form-header h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
+    .form-header p { font-size: 14px; color: var(--muted); line-height: 1.6; }
+    .required-note { font-size: 13px; color: #d93025; margin-top: 8px; }
+
+    .q-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 12px; }
+    .q-card:focus-within { border-color: var(--purple); }
+    .q-label { font-size: 14px; font-weight: 500; margin-bottom: 10px; line-height: 1.5; }
+    .q-label .req { color: #d93025; }
+
+    .opt { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-radius: 4px; cursor: pointer; }
+    .opt:hover { background: var(--bg); }
+    .opt input { accent-color: var(--purple); width: 16px; height: 16px; cursor: pointer; flex-shrink: 0; }
+    .opt label { font-size: 14px; cursor: pointer; }
+
+    .scale-wrap { margin-top: 6px; }
+    .scale-heads { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .scale-row { display: flex; gap: 0; }
+    .scale-col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .scale-col input { accent-color: var(--purple); width: 16px; height: 16px; cursor: pointer; }
+    .scale-col span { font-size: 12px; color: var(--muted); }
+
+    .gh-input { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); padding: 8px 10px; font-size: 14px; font-family: inherit; background: var(--card); color: var(--text); outline: none; }
+    .gh-input:focus { border-color: var(--purple); box-shadow: 0 0 0 3px #6741d920; }
+    textarea.gh-input { resize: vertical; min-height: 80px; }
+
+    .submit-row { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; }
+    .btn-submit { background: var(--green); color: #fff; border: none; border-radius: var(--radius); padding: 8px 22px; font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit; }
+    .btn-submit:hover { background: #2ea043; }
+    .btn-clear { background: none; border: none; color: var(--purple); font-size: 13px; cursor: pointer; font-family: inherit; }
+    .btn-clear:hover { text-decoration: underline; }
+
+    .success { display: none; background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 2.5rem; text-align: center; }
+    .success .icon { font-size: 48px; margin-bottom: 1rem; }
+    .success h2 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+    .success p { font-size: 14px; color: var(--muted); }
+    .btn-another { margin-top: 1rem; display: inline-block; background: var(--purple); color: #fff; border: none; border-radius: var(--radius); padding: 8px 20px; font-size: 14px; cursor: pointer; font-family: inherit; }
+
+    /* RESULTS PAGE */
+    .results-header { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+    .results-header h2 { font-size: 18px; font-weight: 600; }
+    .response-count { background: var(--purple-light); color: var(--purple); font-size: 13px; font-weight: 600; padding: 4px 12px; border-radius: 20px; }
+
+    .chart-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.5rem; margin-bottom: 14px; }
+    .chart-card h3 { font-size: 14px; font-weight: 600; margin-bottom: 1rem; color: var(--text); }
+    .chart-wrap { position: relative; height: 220px; }
+
+    .no-data { text-align: center; padding: 3rem 1rem; color: var(--muted); }
+    .no-data .icon { font-size: 40px; margin-bottom: 1rem; }
+    .no-data p { font-size: 14px; }
+
+    .btn-refresh { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 6px 14px; font-size: 13px; cursor: pointer; font-family: inherit; color: var(--text); }
+    .btn-refresh:hover { background: var(--bg); }
+
+    .pain-list { list-style: none; }
+    .pain-list li { font-size: 13px; padding: 8px 12px; border-bottom: 1px solid var(--bg); color: var(--text); line-height: 1.5; }
+    .pain-list li:last-child { border-bottom: none; }
+    .pain-list li::before { content: "💬 "; }
+  </style>
+</head>
+<body>
+
+<nav class="nav">
+  <svg width="24" height="24" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+  <span style="color:#e6edf3;font-size:14px;font-weight:500">acn-urvashiisharma / git_survey</span>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('survey')">📋 Survey</button>
+    <button class="nav-tab" onclick="showPage('results')">📊 Results</button>
+  </div>
+</nav>
+
+<!-- SURVEY PAGE -->
+<div class="page active" id="page-survey">
+  <div id="form-wrap">
+    <div class="form-header">
+      <h1>Developer Git Survey</h1>
+      <p>Help us understand how developers use Git in their day-to-day workflow. Takes about 2 minutes.</p>
+      <p class="required-note">* Required</p>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">1. How long have you been using Git? <span class="req">*</span></p>
+      <div class="opt"><input type="radio" name="q1" value="Less than 1 year" id="q1a"><label for="q1a">Less than 1 year</label></div>
+      <div class="opt"><input type="radio" name="q1" value="1–3 years" id="q1b"><label for="q1b">1–3 years</label></div>
+      <div class="opt"><input type="radio" name="q1" value="3–5 years" id="q1c"><label for="q1c">3–5 years</label></div>
+      <div class="opt"><input type="radio" name="q1" value="5+ years" id="q1d"><label for="q1d">5+ years</label></div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">2. How would you rate your Git proficiency? <span class="req">*</span></p>
+      <div class="scale-wrap">
+        <div class="scale-heads"><span>Beginner</span><span>Expert</span></div>
+        <div class="scale-row">
+          <div class="scale-col"><input type="radio" name="q2" value="1"><span>1</span></div>
+          <div class="scale-col"><input type="radio" name="q2" value="2"><span>2</span></div>
+          <div class="scale-col"><input type="radio" name="q2" value="3"><span>3</span></div>
+          <div class="scale-col"><input type="radio" name="q2" value="4"><span>4</span></div>
+          <div class="scale-col"><input type="radio" name="q2" value="5"><span>5</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">3. Which Git hosting platform do you use most? <span class="req">*</span></p>
+      <div class="opt"><input type="radio" name="q3" value="GitHub" id="q3a"><label for="q3a">GitHub</label></div>
+      <div class="opt"><input type="radio" name="q3" value="GitLab" id="q3b"><label for="q3b">GitLab</label></div>
+      <div class="opt"><input type="radio" name="q3" value="Bitbucket" id="q3c"><label for="q3c">Bitbucket</label></div>
+      <div class="opt"><input type="radio" name="q3" value="Azure DevOps" id="q3d"><label for="q3d">Azure DevOps</label></div>
+      <div class="opt"><input type="radio" name="q3" value="Self-hosted" id="q3e"><label for="q3e">Self-hosted</label></div>
+      <div class="opt"><input type="radio" name="q3" value="Other" id="q3f"><label for="q3f">Other</label></div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">4. What branching strategy does your team follow?</p>
+      <div class="opt"><input type="radio" name="q4" value="Git Flow" id="q4a"><label for="q4a">Git Flow</label></div>
+      <div class="opt"><input type="radio" name="q4" value="Trunk-based development" id="q4b"><label for="q4b">Trunk-based development</label></div>
+      <div class="opt"><input type="radio" name="q4" value="GitHub Flow" id="q4c"><label for="q4c">GitHub Flow</label></div>
+      <div class="opt"><input type="radio" name="q4" value="No formal strategy" id="q4d"><label for="q4d">No formal strategy</label></div>
+      <div class="opt"><input type="radio" name="q4" value="Other" id="q4e"><label for="q4e">Other</label></div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">5. How often do you use CLI vs. a GUI tool?</p>
+      <div class="opt"><input type="radio" name="q5" value="Always CLI" id="q5a"><label for="q5a">Always CLI</label></div>
+      <div class="opt"><input type="radio" name="q5" value="Mostly CLI" id="q5b"><label for="q5b">Mostly CLI</label></div>
+      <div class="opt"><input type="radio" name="q5" value="Mix of both" id="q5c"><label for="q5c">Mix of both</label></div>
+      <div class="opt"><input type="radio" name="q5" value="Mostly GUI" id="q5d"><label for="q5d">Mostly GUI</label></div>
+      <div class="opt"><input type="radio" name="q5" value="Always GUI" id="q5e"><label for="q5e">Always GUI</label></div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">6. Which Git GUI tool do you use? (select all that apply)</p>
+      <div class="opt"><input type="checkbox" name="q6" value="GitKraken" id="q6a"><label for="q6a">GitKraken</label></div>
+      <div class="opt"><input type="checkbox" name="q6" value="Sourcetree" id="q6b"><label for="q6b">Sourcetree</label></div>
+      <div class="opt"><input type="checkbox" name="q6" value="VS Code built-in" id="q6c"><label for="q6c">VS Code built-in</label></div>
+      <div class="opt"><input type="checkbox" name="q6" value="GitHub Desktop" id="q6d"><label for="q6d">GitHub Desktop</label></div>
+      <div class="opt"><input type="checkbox" name="q6" value="None" id="q6e"><label for="q6e">None</label></div>
+      <div class="opt"><input type="checkbox" name="q6" value="Other" id="q6f"><label for="q6f">Other</label></div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">7. How comfortable are you resolving merge conflicts? <span class="req">*</span></p>
+      <div class="scale-wrap">
+        <div class="scale-heads"><span>Very uncomfortable</span><span>Very comfortable</span></div>
+        <div class="scale-row">
+          <div class="scale-col"><input type="radio" name="q7" value="1"><span>1</span></div>
+          <div class="scale-col"><input type="radio" name="q7" value="2"><span>2</span></div>
+          <div class="scale-col"><input type="radio" name="q7" value="3"><span>3</span></div>
+          <div class="scale-col"><input type="radio" name="q7" value="4"><span>4</span></div>
+          <div class="scale-col"><input type="radio" name="q7" value="5"><span>5</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">8. Do you use Git hooks in your projects?</p>
+      <div class="opt"><input type="radio" name="q8" value="Yes, regularly" id="q8a"><label for="q8a">Yes, regularly</label></div>
+      <div class="opt"><input type="radio" name="q8" value="Yes, occasionally" id="q8b"><label for="q8b">Yes, occasionally</label></div>
+      <div class="opt"><input type="radio" name="q8" value="No, but I'd like to" id="q8c"><label for="q8c">No, but I'd like to</label></div>
+      <div class="opt"><input type="radio" name="q8" value="No, never heard of them" id="q8d"><label for="q8d">No, never heard of them</label></div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">9. Have you ever lost work due to a Git mistake? <span class="req">*</span></p>
+      <div class="opt"><input type="radio" name="q9" value="Yes" id="q9a"><label for="q9a">Yes</label></div>
+      <div class="opt"><input type="radio" name="q9" value="No" id="q9b"><label for="q9b">No</label></div>
+      <div class="opt"><input type="radio" name="q9" value="Not sure" id="q9c"><label for="q9c">Not sure</label></div>
+    </div>
+
+    <div class="q-card">
+      <p class="q-label">10. What's your biggest pain point with Git?</p>
+      <textarea class="gh-input" id="q10" placeholder="Share anything..."></textarea>
+    </div>
+
+    <div class="submit-row">
+      <button class="btn-submit" onclick="submitSurvey()">Submit</button>
+      <button class="btn-clear" onclick="clearForm()">Clear form</button>
+    </div>
+  </div>
+
+  <div class="success" id="success-box">
+    <div class="icon">✅</div>
+    <h2>Response recorded!</h2>
+    <p>Thanks for completing the Developer Git Survey.</p>
+    <button class="btn-another" onclick="resetForm()">Submit another response</button>
+  </div>
+</div>
+
+<!-- RESULTS PAGE -->
+<div class="page" id="page-results">
+  <div class="results-header">
+    <h2>Survey Results</h2>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="response-count" id="resp-count">0 responses</span>
+      <button class="btn-refresh" onclick="renderCharts()">↻ Refresh</button>
+    </div>
+  </div>
+
+  <div id="no-data" class="chart-card no-data">
+    <div class="icon">📭</div>
+    <p>No responses yet. Share the survey link and responses will appear here.</p>
+  </div>
+
+  <div id="charts-wrap" style="display:none">
+    <div class="chart-card"><h3>1. How long have you been using Git?</h3><div class="chart-wrap"><canvas id="c1"></canvas></div></div>
+    <div class="chart-card"><h3>2. Git Proficiency (1–5)</h3><div class="chart-wrap"><canvas id="c2"></canvas></div></div>
+    <div class="chart-card"><h3>3. Git Hosting Platform</h3><div class="chart-wrap"><canvas id="c3"></canvas></div></div>
+    <div class="chart-card"><h3>4. Branching Strategy</h3><div class="chart-wrap"><canvas id="c4"></canvas></div></div>
+    <div class="chart-card"><h3>5. CLI vs GUI Usage</h3><div class="chart-wrap"><canvas id="c5"></canvas></div></div>
+    <div class="chart-card"><h3>6. GUI Tools Used</h3><div class="chart-wrap"><canvas id="c6"></canvas></div></div>
+    <div class="chart-card"><h3>7. Merge Conflict Comfort (1–5)</h3><div class="chart-wrap"><canvas id="c7"></canvas></div></div>
+    <div class="chart-card"><h3>8. Git Hooks Usage</h3><div class="chart-wrap"><canvas id="c8"></canvas></div></div>
+    <div class="chart-card"><h3>9. Lost Work Due to Git Mistake?</h3><div class="chart-wrap"><canvas id="c9"></canvas></div></div>
+    <div class="chart-card" id="pain-card" style="display:none">
+      <h3>10. Biggest Pain Points</h3>
+      <ul class="pain-list" id="pain-list"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  const STORAGE_KEY = 'git_survey_responses';
+  const COLORS = ['#6741d9','#2f81f7','#3fb950','#f0883e','#f85149','#bc8cff','#79c0ff','#56d364'];
+
+  let charts = {};
+
+  function showPage(p) {
+    document.querySelectorAll('.page').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
+    document.getElementById('page-' + p).classList.add('active');
+    event.target.classList.add('active');
+    if (p === 'results') renderCharts();
+  }
+
+  function getResponses() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+  }
+
+  function saveResponse(r) {
+    const all = getResponses();
+    all.push(r);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
+  }
+
+  function submitSurvey() {
+    const req = ['q1','q2','q7','q9'];
+    for (const q of req) {
+      if (!document.querySelector(`input[name="${q}"]:checked`)) {
+        alert('Please answer all required questions (marked with *).'); return;
+      }
+    }
+    const r = {
+      q1: document.querySelector('input[name="q1"]:checked')?.value || '',
+      q2: document.querySelector('input[name="q2"]:checked')?.value || '',
+      q3: document.querySelector('input[name="q3"]:checked')?.value || '',
+      q4: document.querySelector('input[name="q4"]:checked')?.value || '',
+      q5: document.querySelector('input[name="q5"]:checked')?.value || '',
+      q6: [...document.querySelectorAll('input[name="q6"]:checked')].map(i => i.value),
+      q7: document.querySelector('input[name="q7"]:checked')?.value || '',
+      q8: document.querySelector('input[name="q8"]:checked')?.value || '',
+      q9: document.querySelector('input[name="q9"]:checked')?.value || '',
+      q10: document.getElementById('q10').value.trim(),
+      ts: Date.now()
+    };
+    saveResponse(r);
+    document.getElementById('form-wrap').style.display = 'none';
+    document.getElementById('success-box').style.display = 'block';
+  }
+
+  function clearForm() {
+    document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(i => i.checked = false);
+    document.getElementById('q10').value = '';
+  }
+
+  function resetForm() {
+    clearForm();
+    document.getElementById('form-wrap').style.display = 'block';
+    document.getElementById('success-box').style.display = 'none';
+  }
+
+  function countVals(responses, key) {
+    const m = {};
+    responses.forEach(r => {
+      const v = r[key];
+      if (!v) return;
+      if (Array.isArray(v)) v.forEach(x => { m[x] = (m[x]||0)+1; });
+      else m[v] = (m[v]||0)+1;
+    });
+    return m;
+  }
+
+  function makeChart(id, type, labels, data, destroy) {
+    if (charts[id]) { charts[id].destroy(); }
+    const ctx = document.getElementById(id).getContext('2d');
+    charts[id] = new Chart(ctx, {
+      type,
+      data: {
+        labels,
+        datasets: [{
+          data,
+          backgroundColor: COLORS.slice(0, labels.length),
+          borderColor: '#fff',
+          borderWidth: 2,
+          borderRadius: type === 'bar' ? 6 : 0
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: type === 'doughnut', position: 'right', labels: { font: { size: 12 }, padding: 12 } }
+        },
+        scales: type === 'bar' ? {
+          y: { beginAtZero: true, ticks: { stepSize: 1 }, grid: { color: '#f0f0f0' } },
+          x: { grid: { display: false } }
+        } : {}
+      }
+    });
+  }
+
+  function renderCharts() {
+    const responses = getResponses();
+    const n = responses.length;
+    document.getElementById('resp-count').textContent = n + (n === 1 ? ' response' : ' responses');
+
+    if (n === 0) {
+      document.getElementById('no-data').style.display = 'block';
+      document.getElementById('charts-wrap').style.display = 'none';
+      return;
+    }
+    document.getElementById('no-data').style.display = 'none';
+    document.getElementById('charts-wrap').style.display = 'block';
+
+    const q1 = countVals(responses, 'q1');
+    makeChart('c1', 'doughnut', Object.keys(q1), Object.values(q1));
+
+    const q2 = countVals(responses, 'q2');
+    const q2labels = ['1','2','3','4','5'];
+    makeChart('c2', 'bar', q2labels, q2labels.map(l => q2[l]||0));
+
+    const q3 = countVals(responses, 'q3');
+    makeChart('c3', 'doughnut', Object.keys(q3), Object.values(q3));
+
+    const q4 = countVals(responses, 'q4');
+    makeChart('c4', 'bar', Object.keys(q4), Object.values(q4));
+
+    const q5 = countVals(responses, 'q5');
+    makeChart('c5', 'doughnut', Object.keys(q5), Object.values(q5));
+
+    const q6 = countVals(responses, 'q6');
+    makeChart('c6', 'bar', Object.keys(q6), Object.values(q6));
+
+    const q7 = countVals(responses, 'q7');
+    const q7labels = ['1','2','3','4','5'];
+    makeChart('c7', 'bar', q7labels, q7labels.map(l => q7[l]||0));
+
+    const q8 = countVals(responses, 'q8');
+    makeChart('c8', 'doughnut', Object.keys(q8), Object.values(q8));
+
+    const q9 = countVals(responses, 'q9');
+    makeChart('c9', 'doughnut', Object.keys(q9), Object.values(q9));
+
+    const pains = responses.map(r => r.q10).filter(Boolean);
+    if (pains.length > 0) {
+      document.getElementById('pain-card').style.display = 'block';
+      document.getElementById('pain-list').innerHTML = pains.map(p => `<li>${p}</li>`).join('');
+    }
+  }
+</script>
+</body>
+</html>
