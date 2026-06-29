@@ -68,6 +68,7 @@
     .pain-list li:last-child { border-bottom: none; }
     .pain-list li::before { content: "💬 "; }
     .error-msg { background: #fff0f0; border: 1px solid #f85149; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: #d93025; margin-bottom: 14px; }
+    .info-msg { background: #f0ebff; border: 1px solid #6741d9; border-radius: var(--radius); padding: 12px 16px; font-size: 13px; color: #6741d9; margin-bottom: 14px; }
   </style>
 </head>
 <body>
@@ -93,8 +94,8 @@
     <div class="q-card">
       <p class="q-label">1. How long have you been using Git? <span class="req">*</span></p>
       <div class="opt"><input type="radio" name="q1" value="Less than 1 year" id="q1a"><label for="q1a">Less than 1 year</label></div>
-      <div class="opt"><input type="radio" name="q1" value="1–3 years" id="q1b"><label for="q1b">1–3 years</label></div>
-      <div class="opt"><input type="radio" name="q1" value="3–5 years" id="q1c"><label for="q1c">3–5 years</label></div>
+      <div class="opt"><input type="radio" name="q1" value="1-3 years" id="q1b"><label for="q1b">1–3 years</label></div>
+      <div class="opt"><input type="radio" name="q1" value="3-5 years" id="q1c"><label for="q1c">3–5 years</label></div>
       <div class="opt"><input type="radio" name="q1" value="5+ years" id="q1d"><label for="q1d">5+ years</label></div>
     </div>
 
@@ -162,10 +163,10 @@
 
     <div class="q-card">
       <p class="q-label">8. Do you use Git hooks in your projects?</p>
-      <div class="opt"><input type="radio" name="q8" value="Yes, regularly" id="q8a"><label for="q8a">Yes, regularly</label></div>
-      <div class="opt"><input type="radio" name="q8" value="Yes, occasionally" id="q8b"><label for="q8b">Yes, occasionally</label></div>
-      <div class="opt"><input type="radio" name="q8" value="No, but I'd like to" id="q8c"><label for="q8c">No, but I'd like to</label></div>
-      <div class="opt"><input type="radio" name="q8" value="No, never heard of them" id="q8d"><label for="q8d">No, never heard of them</label></div>
+      <div class="opt"><input type="radio" name="q8" value="Yes regularly" id="q8a"><label for="q8a">Yes, regularly</label></div>
+      <div class="opt"><input type="radio" name="q8" value="Yes occasionally" id="q8b"><label for="q8b">Yes, occasionally</label></div>
+      <div class="opt"><input type="radio" name="q8" value="No but I would like to" id="q8c"><label for="q8c">No, but I'd like to</label></div>
+      <div class="opt"><input type="radio" name="q8" value="No never heard of them" id="q8d"><label for="q8d">No, never heard of them</label></div>
     </div>
 
     <div class="q-card">
@@ -184,6 +185,7 @@
       <button class="btn-submit" id="submit-btn" onclick="submitSurvey()">Submit</button>
       <button class="btn-clear" onclick="clearForm()">Clear form</button>
     </div>
+    <div id="submit-error" class="error-msg" style="display:none;margin-top:12px"></div>
   </div>
 
   <div class="success" id="success-box">
@@ -231,7 +233,7 @@
 <script>
   const OWNER = 'acn-urvashiisharma';
   const REPO  = 'git_survey';
-  const TOKEN = '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';
+  const WORKFLOW = 'save-survey.yml';
   const COLORS = ['#6741d9','#2f81f7','#3fb950','#f0883e','#f85149','#bc8cff','#79c0ff','#56d364','#e3b341','#ff7b72'];
   let charts = {};
 
@@ -251,62 +253,51 @@
       }
     }
 
-    const r = {
+    const inputs = {
       q1: document.querySelector('input[name="q1"]:checked')?.value || '',
       q2: document.querySelector('input[name="q2"]:checked')?.value || '',
-      q3: document.querySelector('input[name="q3"]:checked')?.value || '',
-      q4: document.querySelector('input[name="q4"]:checked')?.value || '',
-      q5: document.querySelector('input[name="q5"]:checked')?.value || '',
-      q6: [...document.querySelectorAll('input[name="q6"]:checked')].map(i => i.value).join(', '),
+      q3: document.querySelector('input[name="q3"]:checked')?.value || 'N/A',
+      q4: document.querySelector('input[name="q4"]:checked')?.value || 'N/A',
+      q5: document.querySelector('input[name="q5"]:checked')?.value || 'N/A',
+      q6: [...document.querySelectorAll('input[name="q6"]:checked')].map(i => i.value).join(', ') || 'N/A',
       q7: document.querySelector('input[name="q7"]:checked')?.value || '',
-      q8: document.querySelector('input[name="q8"]:checked')?.value || '',
+      q8: document.querySelector('input[name="q8"]:checked')?.value || 'N/A',
       q9: document.querySelector('input[name="q9"]:checked')?.value || '',
-      q10: document.getElementById('q10').value.trim()
+      q10: document.getElementById('q10').value.trim() || 'N/A'
     };
 
-    const body = `### Survey Response\n\n` +
-      `**1. Git experience:** ${r.q1}\n` +
-      `**2. Proficiency:** ${r.q2}\n` +
-      `**3. Platform:** ${r.q3}\n` +
-      `**4. Branching strategy:** ${r.q4}\n` +
-      `**5. CLI vs GUI:** ${r.q5}\n` +
-      `**6. GUI tools:** ${r.q6}\n` +
-      `**7. Merge conflict comfort:** ${r.q7}\n` +
-      `**8. Git hooks:** ${r.q8}\n` +
-      `**9. Lost work:** ${r.q9}\n` +
-      `**10. Pain point:** ${r.q10 || 'N/A'}\n\n` +
-      `<!-- survey-data:${JSON.stringify(r)} -->`;
-
     const btn = document.getElementById('submit-btn');
+    const errEl = document.getElementById('submit-error');
     btn.disabled = true;
     btn.textContent = 'Submitting...';
+    errEl.style.display = 'none';
 
     try {
-      const res = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/issues`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github+json',
-          'Authorization': `Bearer ${TOKEN}`
-        },
-        body: JSON.stringify({
-          title: `[Survey] Developer Git Survey Response`,
-          body,
-          labels: ['survey-response']
-        })
-      });
+      const res = await fetch(
+        `https://api.github.com/repos/${OWNER}/${REPO}/actions/workflows/${WORKFLOW}/dispatches`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github+json'
+          },
+          body: JSON.stringify({ ref: 'main', inputs })
+        }
+      );
 
-      if (res.ok) {
+      if (res.status === 204) {
         document.getElementById('form-wrap').style.display = 'none';
         document.getElementById('success-box').style.display = 'block';
       } else {
-        const err = await res.json();
-        alert('Submission failed: ' + (err.message || 'Unknown error. Please try again.'));
+        const err = await res.json().catch(() => ({}));
+        errEl.textContent = '⚠️ Submission failed: ' + (err.message || 'Please try again.');
+        errEl.style.display = 'block';
         btn.disabled = false;
         btn.textContent = 'Submit';
       }
     } catch (e) {
-      alert('Network error. Please check your connection and try again.');
+      errEl.textContent = '⚠️ Network error. Please check your connection and try again.';
+      errEl.style.display = 'block';
       btn.disabled = false;
       btn.textContent = 'Submit';
     }
@@ -315,6 +306,7 @@
   function clearForm() {
     document.querySelectorAll('input[type="radio"], input[type="checkbox"]').forEach(i => i.checked = false);
     document.getElementById('q10').value = '';
+    document.getElementById('submit-error').style.display = 'none';
   }
 
   function resetForm() {
@@ -348,7 +340,7 @@
       document.getElementById('results-loading').style.display = 'none';
 
       const responses = allIssues.map(issue => {
-        const match = issue.body?.match(/<!-- survey-data:(.*?) -->/);
+        const match = issue.body?.match(/<!-- survey-data:(.*?) -->/s);
         if (match) { try { return JSON.parse(match[1]); } catch { return null; } }
         return null;
       }).filter(Boolean);
@@ -375,7 +367,7 @@
     const m = {};
     responses.forEach(r => {
       const v = r[key];
-      if (!v) return;
+      if (!v || v === 'N/A') return;
       if (typeof v === 'string' && v.includes(', ')) {
         v.split(', ').forEach(x => { if (x) m[x] = (m[x]||0)+1; });
       } else {
@@ -417,32 +409,23 @@
   function renderCharts(responses) {
     const q1 = countVals(responses, 'q1');
     makeChart('c1', 'doughnut', Object.keys(q1), Object.values(q1));
-
     const q2 = countVals(responses, 'q2');
     makeChart('c2', 'bar', ['1','2','3','4','5'], ['1','2','3','4','5'].map(l => q2[l]||0));
-
     const q3 = countVals(responses, 'q3');
     makeChart('c3', 'doughnut', Object.keys(q3), Object.values(q3));
-
     const q4 = countVals(responses, 'q4');
     makeChart('c4', 'bar', Object.keys(q4), Object.values(q4));
-
     const q5 = countVals(responses, 'q5');
     makeChart('c5', 'doughnut', Object.keys(q5), Object.values(q5));
-
     const q6 = countVals(responses, 'q6');
     makeChart('c6', 'bar', Object.keys(q6), Object.values(q6));
-
     const q7 = countVals(responses, 'q7');
     makeChart('c7', 'bar', ['1','2','3','4','5'], ['1','2','3','4','5'].map(l => q7[l]||0));
-
     const q8 = countVals(responses, 'q8');
     makeChart('c8', 'doughnut', Object.keys(q8), Object.values(q8));
-
     const q9 = countVals(responses, 'q9');
     makeChart('c9', 'doughnut', Object.keys(q9), Object.values(q9));
-
-    const pains = responses.map(r => r.q10).filter(Boolean);
+    const pains = responses.map(r => r.q10).filter(v => v && v !== 'N/A');
     if (pains.length > 0) {
       document.getElementById('pain-card').style.display = 'block';
       document.getElementById('pain-list').innerHTML = pains.map(p => `<li>${p}</li>`).join('');
