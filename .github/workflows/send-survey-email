@@ -1,0 +1,55 @@
+name: Send Git Survey Email
+
+on:
+  workflow_dispatch:       # trigger manually from GitHub Actions tab
+  schedule:
+    - cron: '0 9 * * 1'   # auto-trigger every Monday at 9am UTC
+
+jobs:
+  send-email:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send survey email via Outlook
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.office365.com
+          server_port: 587
+          secure: false
+          username: ${{ secrets.OUTLOOK_USER }}
+          password: ${{ secrets.OUTLOOK_PASS }}
+          subject: "📋 Developer Git Survey – 2 Minutes of Your Time"
+          to: |
+            teammate1@accenture.com,
+            teammate2@accenture.com,
+            teammate3@accenture.com
+          from: Urvashi Sharma <${{ secrets.OUTLOOK_USER }}>
+          html_body: |
+            <html>
+              <body style="font-family: Arial, sans-serif; color: #1f2328; max-width: 600px; margin: 0 auto;">
+                <div style="background: #6741d9; padding: 24px; border-radius: 8px 8px 0 0; text-align: center;">
+                  <h1 style="color: #fff; margin: 0; font-size: 22px;">📋 Developer Git Survey</h1>
+                  <p style="color: #e0d4ff; margin: 8px 0 0; font-size: 14px;">Share how you use Git – takes under 2 minutes</p>
+                </div>
+                <div style="background: #f6f8fa; padding: 28px; border: 1px solid #d0d7de; border-top: none; border-radius: 0 0 8px 8px;">
+                  <p>Hi Team,</p>
+                  <p>I'm running a short survey to understand how our team uses Git in day-to-day workflows. Your feedback will help us improve our Git practices across the team.</p>
+                  <p>It takes <strong>less than 2 minutes</strong> and covers 10 simple questions on topics like:</p>
+                  <ul style="color: #1f2328; font-size: 14px; line-height: 2;">
+                    <li>Branching strategies</li>
+                    <li>Tools & workflows</li>
+                    <li>Merge conflict experience</li>
+                    <li>Common pain points</li>
+                  </ul>
+                  <div style="text-align: center; margin: 28px 0;">
+                    <a href="https://acn-urvashiisharma.github.io/git_survey"
+                       style="background: #6741d9; color: #fff; padding: 12px 28px; border-radius: 6px; text-decoration: none; font-weight: bold; font-size: 15px;">
+                      👉 Take the Survey
+                    </a>
+                  </div>
+                  <p style="color: #656d76; font-size: 13px; text-align:center;">Or copy this link: https://acn-urvashiisharma.github.io/git_survey</p>
+                  <hr style="border: none; border-top: 1px solid #d0d7de; margin: 20px 0;" />
+                  <p style="font-size: 13px; color: #656d76;">Thank you for your time and participation!<br/>Best regards,<br/><strong>Urvashi Sharma</strong></p>
+                </div>
+              </body>
+            </html>
