@@ -231,6 +231,7 @@
 <script>
   const OWNER = 'acn-urvashiisharma';
   const REPO  = 'git_survey';
+  const TOKEN = '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';
   const COLORS = ['#6741d9','#2f81f7','#3fb950','#f0883e','#f85149','#bc8cff','#79c0ff','#56d364','#e3b341','#ff7b72'];
   let charts = {};
 
@@ -285,7 +286,8 @@
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/vnd.github+json'
+          'Accept': 'application/vnd.github+json',
+          'Authorization': `Bearer ${TOKEN}`
         },
         body: JSON.stringify({
           title: `[Survey] Developer Git Survey Response`,
