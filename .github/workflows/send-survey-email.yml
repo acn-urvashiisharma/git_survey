@@ -20,9 +20,9 @@ jobs:
           password: ${{ secrets.OUTLOOK_PASS }}
           subject: "📋 Developer Git Survey – 2 Minutes of Your Time"
           to: |
-            teammate1@accenture.com,
-            teammate2@accenture.com,
-            teammate3@accenture.com
+            ashutosh.he.kumar@accenture.com,
+            vaishnavi.kadiyala@accenture.com,
+            arpita.rajvanshi@accenture.com
           from: Urvashi Sharma <${{ secrets.OUTLOOK_USER }}>
           html_body: |
             <html>
