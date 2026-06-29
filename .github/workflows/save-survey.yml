@@ -1,42 +1,86 @@
 name: Save Survey Response
 
 on:
-  issues:
-    types: [opened]
+  workflow_dispatch:
+    inputs:
+      q1:
+        description: 'How long have you been using Git?'
+        required: true
+      q2:
+        description: 'Git proficiency (1-5)'
+        required: true
+      q3:
+        description: 'Git hosting platform'
+        required: false
+      q4:
+        description: 'Branching strategy'
+        required: false
+      q5:
+        description: 'CLI vs GUI'
+        required: false
+      q6:
+        description: 'GUI tools used'
+        required: false
+      q7:
+        description: 'Merge conflict comfort (1-5)'
+        required: true
+      q8:
+        description: 'Git hooks usage'
+        required: false
+      q9:
+        description: 'Lost work due to Git mistake'
+        required: true
+      q10:
+        description: 'Biggest pain point'
+        required: false
 
 jobs:
-  save-and-close:
+  create-issue:
     runs-on: ubuntu-latest
     permissions:
       issues: write
 
     steps:
-      - name: Label, comment and close survey issue
-        if: contains(github.event.issue.title, '[Survey]')
+      - name: Create survey response issue
         uses: actions/github-script@v7
         with:
           github-token: ${{ secrets.SURVEY_TOKEN }}
           script: |
-            // Add label
-            await github.rest.issues.addLabels({
+            const body = `### Survey Response\n\n` +
+              `**1. Git experience:** ${{ github.event.inputs.q1 }}\n` +
+              `**2. Proficiency:** ${{ github.event.inputs.q2 }}\n` +
+              `**3. Platform:** ${{ github.event.inputs.q3 }}\n` +
+              `**4. Branching strategy:** ${{ github.event.inputs.q4 }}\n` +
+              `**5. CLI vs GUI:** ${{ github.event.inputs.q5 }}\n` +
+              `**6. GUI tools:** ${{ github.event.inputs.q6 }}\n` +
+              `**7. Merge conflict comfort:** ${{ github.event.inputs.q7 }}\n` +
+              `**8. Git hooks:** ${{ github.event.inputs.q8 }}\n` +
+              `**9. Lost work:** ${{ github.event.inputs.q9 }}\n` +
+              `**10. Pain point:** ${{ github.event.inputs.q10 }}\n\n` +
+              `<!-- survey-data:${JSON.stringify({
+                q1: "${{ github.event.inputs.q1 }}",
+                q2: "${{ github.event.inputs.q2 }}",
+                q3: "${{ github.event.inputs.q3 }}",
+                q4: "${{ github.event.inputs.q4 }}",
+                q5: "${{ github.event.inputs.q5 }}",
+                q6: "${{ github.event.inputs.q6 }}",
+                q7: "${{ github.event.inputs.q7 }}",
+                q8: "${{ github.event.inputs.q8 }}",
+                q9: "${{ github.event.inputs.q9 }}",
+                q10: "${{ github.event.inputs.q10 }}"
+              })} -->`;
+
+            const issue = await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              title: '[Survey] Developer Git Survey Response',
+              body,
               labels: ['survey-response']
             });
 
-            // Thank you comment
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-              body: '✅ Thank you for completing the Developer Git Survey! Your response has been recorded.'
-            });
-
-            // Auto-close
             await github.rest.issues.update({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              issue_number: context.issue.number,
+              issue_number: issue.data.number,
               state: 'closed'
             });
